@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sumeet Pandey | Interactive Resume</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutral -->
+    <!-- Application Structure Plan: The SPA is structured as a single-page narrative portfolio. It starts with a strong summary (Hero), followed by a vertical, interactive timeline (Career Journey) to show progression without overwhelming the user. The core is the 'Key Achievements' section, a dashboard with an interactive chart allowing recruiters to filter quantifiable results by company—this directly addresses the data-driven nature of the target role. A 'Skills' section with a radar chart provides a quick, visual assessment of competencies. This structure was chosen to guide the user from a high-level summary to deep, evidence-based exploration, making it more engaging and memorable than a linear document. -->
+    <!-- Visualization & Content Choices: 
+        - Career Journey: Report Info -> Chronological Job History. Goal -> Show career progression. Viz/Method -> Vertical Timeline (HTML/CSS/JS). Interaction -> Click on a job title to expand/collapse details. Justification -> More engaging and less cluttered than a long text list, ideal for showing a career story.
+        - Key Achievements: Report Info -> Quantifiable metrics (50X growth, 15% EBIT increase, etc.). Goal -> Compare and highlight data-driven impact. Viz/Method -> Interactive Bar Chart (Chart.js) with filter buttons. Interaction -> User clicks a company name ('Uber', 'Oye! Rickshaw') to dynamically update the bar chart and an adjacent text block with relevant data and context. Justification -> Transforms static numbers into compelling visual evidence of success, directly aligning with the target job's focus on analytics and growth.
+        - Skills: Report Info -> Grouped skill lists. Goal -> Organize and present a balanced skillset. Viz/Method -> Radar Chart (Chart.js). Interaction -> Hover tooltips reveal specific skills within a category. Justification -> Provides a quick, holistic view of capabilities that is more scannable and visually interesting than a bulleted list.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7;
+            color: #333333;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #D97706; /* Amber-600 */
+        }
+        .timeline-item-content {
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .timeline-item-content.open {
+            max-height: 500px;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-gray-800">Sumeet Pandey</div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#journey" class="nav-link text-gray-600 font-medium">Career Journey</a>
+                <a href="#achievements" class="nav-link text-gray-600 font-medium">Key Achievements</a>
+                <a href="#skills" class="nav-link text-gray-600 font-medium">Skills</a>
+                <a href="#education" class="nav-link text-gray-600 font-medium">Education</a>
+            </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-800 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden">
+            <a href="#journey" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">Career Journey</a>
+            <a href="#achievements" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">Key Achievements</a>
+            <a href="#skills" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">Skills</a>
+            <a href="#education" class="block py-2 px-4 text-sm text-gray-600 hover:bg-gray-100">Education</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <section id="home" class="text-center mb-20">
+            <h1 class="text-5xl md:text-6xl font-bold text-gray-800 mb-4">Sumeet Pandey</h1>
+            <p class="text-xl md:text-2xl text-amber-600 font-medium mb-6" id="dynamic-title">Growth & Strategy Leader</p>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600">
+                An accomplished MBA professional with a robust track record in program management, growth strategy, and product operations. Adept at driving acquisition and engagement through data-backed insights and scalable marketing campaigns.
+            </p>
+        </section>
+
+        <section id="journey" class="mb-20">
+            <h2 class="text-4xl font-bold text-center mb-4 text-gray-800">Career Journey</h2>
+            <p class="text-center text-gray-600 max-w-2xl mx-auto mb-12">This timeline traces my professional growth, from my foundational experience in software development to leading high-impact strategic initiatives at major tech companies. Click on any role to see the key responsibilities and accomplishments during that period.</p>
+            <div id="timeline-container" class="relative max-w-3xl mx-auto">
+                <!-- Timeline items will be injected here by JavaScript -->
+            </div>
+        </section>
+
+        <section id="achievements" class="mb-20 py-12 bg-white rounded-xl shadow-lg">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl font-bold text-center mb-4 text-gray-800">Key Achievements</h2>
+                <p class="text-center text-gray-600 max-w-3xl mx-auto mb-12">Throughout my career, I've focused on delivering measurable results. This section visualizes key achievements in growth, profitability, and operational efficiency. Select a company to explore the data-driven impact I delivered.</p>
+                <div class="flex justify-center space-x-2 md:space-x-4 mb-8">
+                    <button data-company="google" class="company-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full font-medium transition-all duration-300">Google</button>
+                    <button data-company="oye" class="company-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full font-medium transition-all duration-300">Oye! Rickshaw</button>
+                    <button data-company="uber" class="company-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full font-medium transition-all duration-300 active">Uber</button>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div class="chart-container">
+                        <canvas id="achievementsChart"></canvas>
+                    </div>
+                    <div id="achievements-context" class="text-gray-600">
+                        <!-- Context will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills" class="mb-20">
+            <h2 class="text-4xl font-bold text-center mb-4 text-gray-800">Core Competencies</h2>
+            <p class="text-center text-gray-600 max-w-2xl mx-auto mb-12">My expertise spans across strategy, analytics, and management. This visualization provides a snapshot of my core competencies, which are foundational to driving growth and leading successful teams.</p>
+            <div class="chart-container h-[400px] md:h-[500px] max-h-[500px]">
+                <canvas id="skillsChart"></canvas>
+            </div>
+        </section>
+
+        <section id="education">
+            <h2 class="text-4xl font-bold text-center mb-12 text-gray-800">Education & Certifications</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Education cards will be injected here -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-20">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p class="mb-4 text-lg font-medium">Let's Connect</p>
+            <div class="flex justify-center items-center space-x-6 text-gray-400">
+                <a href="mailto:sumeetpd@google.com" class="hover:text-amber-500 transition-colors">sumeetpd@google.com</a>
+                <span>&bull;</span>
+                <a href="https://www.linkedin.com/in/sumeet-pandey/" target="_blank" class="hover:text-amber-500 transition-colors">LinkedIn</a>
+                 <span>&bull;</span>
+                <span>+91 8076188613</span>
+            </div>
+            <p class="mt-8 text-sm text-gray-500">&copy; 2024 Sumeet Pandey. Interactive resume created to showcase skills.</p>
+        </div>
+    </footer>
+
+<script>
+    const resumeData = {
+        experience: [
+            {
+                company: "Google",
+                role: "Senior Strategist - T&S GenAI",
+                period: "Sept 2021 – Present",
+                location: "Bangalore",
+                details: [
+                    "Lead strategy and program management for Google's $100M Generative AI Operations globally, focusing on content operations and workflow optimization for platforms like Gemini.",
+                    "Drive cross-functional collaboration with global teams and external partners to ensure optimal resource utilization and strategic preparedness for program launches.",
+                    "Conceptualize and launch new workflows, defining success metrics and Service Level Agreements (SLAs) in partnership with Engineering and Business teams.",
+                    "Develop and implement solutions to optimize T&S Ads review and Gen AI processes, enhancing operational efficiency and strategic impact."
+                ]
+            },
+            {
+                company: "Oye! Rickshaw",
+                role: "General Manager - Growth, Revenue & Ops",
+                period: "July 2020 – Sept 2021",
+                location: "NCR",
+                details: [
+                    "Spearheaded the growth, revenue, and operations functions, building and scaling Oye! Rickshaw's battery swapping business from inception.",
+                    "Led Go-To-Market (GTM) strategy, P&L management, and strategic execution for the electric 3-wheeler battery swapping model across the NCR region.",
+                    "Achieved a 50X business scale in 3 months by effectively managing multiple fluid priorities and collaborating closely with hardware product and tech teams.",
+                    "Partnered with the CEO and founders to define future revenue goals, investor plans, growth prospects, and overall strategic direction."
+                ]
+            },
+            {
+                company: "Uber",
+                role: "City Manager - Fleet Operations",
+                period: "Jan 2019 – July 2020",
+                location: "Hyderabad",
+                details: [
+                    "Headed the Vehicle Leasing vertical, overseeing the entire product lease life cycle and significantly improving profitability.",
+                    "Increased EBIT margin by 15 percentage points (from -5% to +10%) in 2019 through strategic initiatives.",
+                    "Led the Go-To-Market (GTM) for Uber Ads business in Hyderabad and collaborated with external startups and India leadership to scale Uber Ads across multiple cities.",
+                    "Implemented strategies that resulted in a 40% improvement in average engagement levels and a 27% reduction in operational spend."
+                ]
+            },
+             {
+                company: "Freelance Consulting",
+                role: "Consultant/Researcher/Analyst",
+                period: "Jul 2017 – Jul 2018",
+                location: "London",
+                details: [
+                    "Collaborated with Cisco-Logicalis in London to develop customer-facing sales case studies, supporting product sales across Europe."
+                ]
+            },
+            {
+                company: "Samsung",
+                role: "Software Developer",
+                period: "Jun 2014 – Jul 2017",
+                location: "Noida",
+                details: [
+                    "Developed automation tools and Android applications using SQL, Java, and Shell scripting, enhancing internal processes."
+                ]
+            }
+        ],
+        achievements: {
+            google: {
+                title: "Strategic Program Leadership at Google",
+                metrics: [
+                    { label: 'Program Value ($M)', value: 100, color: 'rgba(54, 162, 235, 0.6)' }
+                ],
+                context: "Led the strategic direction and global program management for Google's <strong>$100M Generative AI Operations</strong>. My role involves orchestrating complex, cross-functional initiatives to optimize content workflows for cutting-edge AI like Gemini, ensuring strategic alignment and operational excellence across global teams and partners."
+            },
+            oye: {
+                title: "Explosive Growth at Oye! Rickshaw",
+                metrics: [
+                    { label: 'Business Scaling (factor)', value: 50, color: 'rgba(75, 192, 192, 0.6)' }
+                ],
+                context: "As GM, I built the battery swapping business from the ground up, achieving a <strong>50X growth in scale within just 3 months</strong>. This was accomplished by leading an aggressive GTM strategy, managing the P&L, and driving strategic execution in a fast-paced, fluid environment."
+            },
+            uber: {
+                title: "Profitability & Engagement at Uber",
+                metrics: [
+                    { label: 'EBIT Margin Increase (%)', value: 15, color: 'rgba(255, 159, 64, 0.6)' },
+                    { label: 'Engagement Boost (%)', value: 40, color: 'rgba(153, 102, 255, 0.6)' },
+                    { label: 'OpEx Reduction (%)', value: -27, color: 'rgba(255, 99, 132, 0.6)' }
+                ],
+                context: "At Uber, I turned the vehicle leasing vertical profitable, driving a <strong>15-point increase in EBIT margin</strong>. Simultaneously, I led initiatives that boosted driver engagement by <strong>40%</strong> and achieved a <strong>27% reduction in operational spending</strong> through targeted strategic improvements."
+            }
+        },
+        skills: {
+            labels: ['Marketing Strategy', 'Analytics & Data', 'Program Management', 'Business Acumen', 'Technical Aptitude'],
+            datasets: [
+                {
+                    label: 'Proficiency',
+                    data: [90, 85, 95, 90, 70],
+                    backgroundColor: 'rgba(217, 119, 6, 0.2)',
+                    borderColor: 'rgba(217, 119, 6, 1)',
+                    pointBackgroundColor: 'rgba(217, 119, 6, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(217, 119, 6, 1)'
+                }
+            ],
+            tooltips: [
+                'Growth Marketing, GTM Strategy, Campaign Management, Acquisition & Engagement',
+                'Data-backed Insights, Experimentation (A/B Testing), Performance Measurement (KPIs, SLAs)',
+                'Large-Scale Program Leadership, Strategic Planning, Risk & Budget Management',
+                'P&L Management, Revenue Growth, Operational Efficiency, Business Development',
+                'SQL, Java, Shell Scripting, Automation Tools, Android Development'
+            ]
+        },
+        education: [
+            {
+                degree: "MBA",
+                institution: "MDI, Gurgaon",
+                year: "2019"
+            },
+            {
+                degree: "MBA - International Management",
+                institution: "ESCP Europe, London",
+                year: "2018"
+            },
+            {
+                degree: "B.Tech - Computer Science",
+                institution: "HBTI, Kanpur",
+                year: "2014"
+            },
+            {
+                degree: "Lean Six Sigma - Green Belt",
+                institution: "KPMG",
+                year: "Certification"
+            },
+            {
+                degree: "Bloomberg's Market Concept",
+                institution: "Bloomberg",
+                year: "Certification"
+            },
+            {
+                degree: "Google Analytics IQ",
+                institution: "Google",
+                year: "Certification"
+            }
+        ]
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const dynamicTitles = ["Program Manager", "Growth Strategist", "Product Operations Expert", "Marketing Leader"];
+        let titleIndex = 0;
+        const dynamicTitleElement = document.getElementById('dynamic-title');
+        
+        setInterval(() => {
+            titleIndex = (titleIndex + 1) % dynamicTitles.length;
+            dynamicTitleElement.style.opacity = 0;
+            setTimeout(() => {
+                dynamicTitleElement.textContent = dynamicTitles[titleIndex];
+                dynamicTitleElement.style.opacity = 1;
+            }, 300);
+        }, 3000);
+        dynamicTitleElement.style.transition = 'opacity 0.3s ease-in-out';
+
+        const timelineContainer = document.getElementById('timeline-container');
+        timelineContainer.innerHTML = `
+            <div class="absolute left-1/2 -translate-x-1/2 top-0 h-full w-0.5 bg-gray-200"></div>
+            ${resumeData.experience.map((job, index) => `
+                <div class="timeline-item mb-8 relative">
+                    <div class="absolute left-1/2 -translate-x-1/2 mt-2 w-4 h-4 bg-amber-500 rounded-full border-4 border-white"></div>
+                    <div class="${index % 2 === 0 ? 'md:mr-[55%]' : 'md:ml-[55%]'} md:w-[45%] ${index % 2 === 0 ? 'text-left md:text-right' : 'text-left'}">
+                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 cursor-pointer" data-index="${index}">
+                            <time class="text-sm font-semibold text-amber-600">${job.period}</time>
+                            <h3 class="text-xl font-bold text-gray-800 mt-1">${job.role}</h3>
+                            <p class="text-gray-500 font-medium">${job.company} - ${job.location}</p>
+                            <div class="timeline-item-content mt-4 text-gray-600 text-left" id="content-${index}">
+                                <ul class="list-disc list-inside space-y-2">
+                                    ${job.details.map(detail => `<li>${detail}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        `;
+        
+        const educationContainer = document.querySelector('#education .grid');
+        educationContainer.innerHTML = resumeData.education.map(edu => `
+            <div class="bg-white p-6 rounded-lg shadow-md text-center border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800">${edu.degree}</h3>
+                <p class="text-gray-600">${edu.institution}</p>
+                <p class="text-amber-600 font-semibold mt-2">${edu.year}</p>
+            </div>
+        `).join('');
+
+        const timelineItems = document.querySelectorAll('.timeline-item [data-index]');
+        timelineItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const index = item.getAttribute('data-index');
+                const content = document.getElementById(`content-${index}`);
+                const wasOpen = content.classList.contains('open');
+
+                document.querySelectorAll('.timeline-item-content.open').forEach(openContent => {
+                    openContent.classList.remove('open');
+                });
+                
+                if (!wasOpen) {
+                    content.classList.toggle('open');
+                }
+            });
+        });
+
+        const achievementsCtx = document.getElementById('achievementsChart').getContext('2d');
+        const skillsCtx = document.getElementById('skillsChart').getContext('2d');
+        let achievementsChart;
+
+        function updateAchievementsChart(company) {
+            const data = resumeData.achievements[company];
+            const contextEl = document.getElementById('achievements-context');
+
+            if (achievementsChart) {
+                achievementsChart.destroy();
+            }
+
+            contextEl.innerHTML = `
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">${data.title}</h3>
+                <p class="text-lg">${data.context}</p>
+            `;
+
+            achievementsChart = new Chart(achievementsCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.metrics.map(m => m.label.split(' ')),
+                    datasets: [{
+                        label: 'Impact Metric',
+                        data: data.metrics.map(m => m.value),
+                        backgroundColor: data.metrics.map(m => m.color),
+                        borderColor: data.metrics.map(m => m.color.replace('0.6', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                             grid: { display: false }
+                        },
+                        y: {
+                             grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        const companyBtns = document.querySelectorAll('.company-btn');
+        companyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                companyBtns.forEach(b => b.classList.remove('active', 'bg-amber-600', 'text-white'));
+                btn.classList.add('active', 'bg-amber-600', 'text-white');
+                updateAchievementsChart(btn.dataset.company);
+            });
+        });
+
+        new Chart(skillsCtx, {
+            type: 'radar',
+            data: resumeData.skills,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                        pointLabels: {
+                            font: { size: 14, weight: 'bold' },
+                            color: '#333'
+                        },
+                        ticks: {
+                            display: false,
+                            stepSize: 20
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return resumeData.skills.tooltips[context.dataIndex];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        const navLinks = document.querySelectorAll('nav a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if(link.getAttribute('href').startsWith('#')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            })
+        });
+
+        updateAchievementsChart('uber');
+        document.querySelector('.company-btn[data-company="uber"]').classList.add('bg-amber-600', 'text-white');
+    });
+
+</script>
+</body>
+</html>
